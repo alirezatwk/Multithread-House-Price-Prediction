@@ -9,10 +9,10 @@
 extern std::vector<std::vector<int>> dataset;
 extern std::vector<std::string> columns;
 extern int dataset_size;
-extern int threshold;
 
 std::string append_address(std::string directory, std::string filename);
 void read_dataset(std::string dataset_address);
+void classify_price(int threshold);
 
 // void calculate_cols_min_max(void);
 // void normalize_dataset(void);

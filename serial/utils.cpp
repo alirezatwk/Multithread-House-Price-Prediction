@@ -48,6 +48,14 @@ void read_dataset(string dataset_address){
 	dataset_file.close();
 }
 
+void classify_price(int threshold){
+	for(int i = 0; i < dataset_size; i++)
+		if(dataset[i][dataset[i].size() - 1] >= threshold)
+			dataset[i][dataset[i].size() - 1] = 1;
+		else
+			dataset[i][dataset[i].size() - 1] = 0;
+}
+
 // void calculate_cols_min_max(void) {
 //     for (int feature_idx = 0; feature_idx < 20; feature_idx++) {
 //         cols_min_max[feature_idx].min = dataset[0][feature_idx];
