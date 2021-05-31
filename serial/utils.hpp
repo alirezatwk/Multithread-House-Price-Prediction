@@ -6,6 +6,7 @@
 #include <sstream>
 #include <fstream>
 #include <cmath>
+#include <chrono>
 
 extern std::vector<std::vector<int>> dataset;
 extern std::vector<std::string> columns;
@@ -17,6 +18,7 @@ extern std::vector<double> expensive_mean;
 extern std::vector<double> cheap_var;
 extern std::vector<double> expensive_var;
 extern std::vector<int> predictions;
+extern bool print_times;
 
 std::string append_address(std::string directory, std::string filename);
 void read_dataset(std::string dataset_address);
