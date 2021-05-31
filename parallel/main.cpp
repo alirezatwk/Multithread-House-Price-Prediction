@@ -18,7 +18,7 @@ vector<double> expensive_mean;
 vector<double> cheap_var;
 vector<double> expensive_var;
 vector<int> predictions;
-bool print_times = true;
+bool print_times = false;
 
 
 pthread_mutex_t mutex_dataset;
