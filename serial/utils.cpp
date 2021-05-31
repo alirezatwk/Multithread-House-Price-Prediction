@@ -50,82 +50,80 @@ void read_dataset(string dataset_address){
 
 void classify_price(int threshold){
 	for(int i = 0; i < dataset_size; i++)
-		if(dataset[i][dataset[i].size() - 1] >= threshold)
+		if(dataset[i][dataset[i].size() - 1] >= threshold){
 			dataset[i][dataset[i].size() - 1] = 1;
-		else
+			expensive_size++;
+		}
+		else{
 			dataset[i][dataset[i].size() - 1] = 0;
+			cheap_size++;
+		}
 }
 
-// void calculate_cols_min_max(void) {
-//     for (int feature_idx = 0; feature_idx < 20; feature_idx++) {
-//         cols_min_max[feature_idx].min = dataset[0][feature_idx];
-//         cols_min_max[feature_idx].max = dataset[0][feature_idx];
+void calc_mean_var(void){
+	// Initialization
+	for(uint i = 0; i < columns.size(); i++){
+		cheap_mean.push_back(0.0);
+		expensive_mean.push_back(0.0);
+		cheap_var.push_back(0.0);
+		expensive_var.push_back(0.0);
+	}
 
-//         for (unsigned long i = 0; i < dataset_size; i++) {
-//             if (dataset[i][feature_idx] < cols_min_max[feature_idx].min)
-//                 cols_min_max[feature_idx].min = dataset[i][feature_idx];
-//             if (dataset[i][feature_idx] > cols_min_max[feature_idx].max)
-//                 cols_min_max[feature_idx].max = dataset[i][feature_idx];
-//         }
-//     }
-// }
+	// Mean
+	int price_ind = columns.size() - 1;
+	for(int i = 0; i < dataset_size; i++){
+		if(dataset[i][price_ind] == 0){
+			for(uint j = 0; j < columns.size(); j++)
+				cheap_mean[j] += dataset[i][j];
+		}
+		else{
+			for(uint j = 0; j < columns.size(); j++)
+				expensive_mean[j] += dataset[i][j];
+		}
+	}
+	for(uint i = 0; i < columns.size(); i++){
+		cheap_mean[i] /= cheap_size;
+		expensive_mean[i] /= expensive_size;
+	}
 
-// void normalize_dataset(void) {
-//     for (unsigned long i = 0; i < dataset_size; i++) {
-//         for (int feature_idx = 0; feature_idx < 20; feature_idx++) {
-//             dataset[i][feature_idx] = (dataset[i][feature_idx] - cols_min_max[feature_idx].min)
-//                                     / (cols_min_max[feature_idx].max - cols_min_max[feature_idx].min);
-//         }
-//     }
-// }
+	//Variance
+	for(int i = 0; i < dataset_size; i++){
+		if(dataset[i][price_ind] == 0){
+			for(uint j = 0; j < columns.size(); j++)
+				cheap_var[j] += (dataset[i][j] - cheap_mean[j]) * (dataset[i][j] - cheap_mean[j]);
+		}
+		else{
+			for(uint j = 0; j < columns.size(); j++)
+				expensive_var[j] += (dataset[i][j] - expensive_mean[j]) * (dataset[i][j] - expensive_mean[j]);
+		}
+	}
+	for(uint i = 0; i < columns.size(); i++){
+		cheap_var[i] /= cheap_size - 1;
+		expensive_var[i] /= expensive_size - 1;
+	}
+}
 
-// void guess_classification(void) {
-//     for (unsigned long i = 0; i < dataset_size; i++) {
-//         double range_0_dot_product = 0.0;
-//         double range_1_dot_product = 0.0;
-//         double range_2_dot_product = 0.0;
-//         double range_3_dot_product = 0.0;
+void predict(int column_id){
+	double sd = sqrt(expensive_var[column_id]);
 
-//         for (int feature_idx = 0; feature_idx < 20; feature_idx++) {
-//             range_0_dot_product += weights[0][feature_idx] * dataset[i][feature_idx];
-//             range_1_dot_product += weights[1][feature_idx] * dataset[i][feature_idx];
-//             range_2_dot_product += weights[2][feature_idx] * dataset[i][feature_idx];
-//             range_3_dot_product += weights[3][feature_idx] * dataset[i][feature_idx];
-//         } 
-//         range_0_dot_product += weights[0][20];
-//         range_1_dot_product += weights[1][20];
-//         range_2_dot_product += weights[2][20];
-//         range_3_dot_product += weights[3][20];
+	double begin = expensive_mean[column_id] - sd;
+	double end = expensive_mean[column_id] + sd;
 
-//         classification_results.push_back(get_best_classification(range_0_dot_product, range_1_dot_product, range_2_dot_product, range_3_dot_product));
-//         if (classification_results[i] == dataset[i][20])
-//             correct_detected_classification++;
-//     }
-// }
+	for(int i = 0; i < dataset_size; i++){
+		if(dataset[i][column_id] < begin || end < dataset[i][column_id])
+			predictions.push_back(0);
+		else
+			predictions.push_back(1);
+	}
+}
 
-// double get_best_classification(double range_0_dot_product, double range_1_dot_product,
-//                          double range_2_dot_product, double range_3_dot_product) {
+void print_accuracy(void) {
+	int correct_detected_classification = 0;
+	int price_ind = columns.size() - 1;
 
-//     int max_idx = 0;
-//     double max_val = range_0_dot_product;
-
-//     if (range_1_dot_product > max_val) {
-//         max_val = range_1_dot_product;
-//         max_idx = 1;
-//     }
-//     if (range_2_dot_product > max_val) {
-//         max_val = range_2_dot_product;
-//         max_idx = 2;
-//     }
-//     if (range_3_dot_product > max_val) {
-//         max_val = range_3_dot_product;
-//         max_idx = 3;
-//     }
-
-//     return (double)max_idx;
-// }
-
-// void print_accuracy(void) {
-//     double accuracy = 100*(correct_detected_classification/(double)dataset_size);
-//     printf("Accuracy: %.2f%\n", accuracy);
-// }
+	for(int i = 0; i < dataset_size; i++)
+		if(dataset[i][price_ind] == predictions[i])
+			correct_detected_classification++;
+    double accuracy = 100 * (correct_detected_classification / (double)dataset_size);
+    printf("Accuracy: %.2f%\n", accuracy);
+}
