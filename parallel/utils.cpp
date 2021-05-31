@@ -23,8 +23,7 @@ void split_one_csv_line(vector<string> &result, string line){
 		result.push_back(token);
 }
 
-
-void read_dataset(string dataset_address){
+vector<vector<int>> read_dataset(string dataset_address){
 	ifstream dataset_file(dataset_address);
 	if(!dataset_file){
 		cerr << "Error opening dataset.csv" << endl;
@@ -36,33 +35,34 @@ void read_dataset(string dataset_address){
 
 	// Set Columns
 	getline(dataset_file, line);
-	split_one_csv_line(columns, line);
+	// split_one_csv_line(columns, line);
 
 	// Read dataset
+	vector<vector<int>> result;
 	while(getline(dataset_file, line)){
 		vector<int> new_entry;
 		split_one_csv_line(new_entry, line);
-		dataset.push_back(new_entry);
+		result.push_back(new_entry);
 	}
-	dataset_size = dataset.size();
 	dataset_file.close();
+	return result;
 }
 
-void classify_price(int threshold){
-	for(int i = 0; i < dataset_size; i++)
-		if(dataset[i][dataset[i].size() - 1] >= threshold){
-			dataset[i][dataset[i].size() - 1] = 1;
+void classify_price(int threshold, vector<vector<int>> &dataset_thread){
+	for(uint i = 0; i < dataset_thread.size(); i++)
+		if(dataset_thread[i][dataset_thread[i].size() - 1] >= threshold){
+			dataset_thread[i][dataset_thread[i].size() - 1] = 1;
 			expensive_size++;
 		}
 		else{
-			dataset[i][dataset[i].size() - 1] = 0;
+			dataset_thread[i][dataset_thread[i].size() - 1] = 0;
 			cheap_size++;
 		}
 }
 
 void calc_mean_var(void){
 	// Initialization
-	for(uint i = 0; i < columns.size(); i++){
+	for(uint i = 0; i < 9; i++){
 		cheap_mean.push_back(0.0);
 		expensive_mean.push_back(0.0);
 		cheap_var.push_back(0.0);
@@ -70,18 +70,18 @@ void calc_mean_var(void){
 	}
 
 	// Mean
-	int price_ind = columns.size() - 1;
+	int price_ind = 9 - 1;
 	for(int i = 0; i < dataset_size; i++){
 		if(dataset[i][price_ind] == 0){
-			for(uint j = 0; j < columns.size(); j++)
+			for(uint j = 0; j < 9; j++)
 				cheap_mean[j] += dataset[i][j];
 		}
 		else{
-			for(uint j = 0; j < columns.size(); j++)
+			for(uint j = 0; j < 9; j++)
 				expensive_mean[j] += dataset[i][j];
 		}
 	}
-	for(uint i = 0; i < columns.size(); i++){
+	for(uint i = 0; i < 9; i++){
 		cheap_mean[i] /= cheap_size;
 		expensive_mean[i] /= expensive_size;
 	}
@@ -89,15 +89,15 @@ void calc_mean_var(void){
 	//Variance
 	for(int i = 0; i < dataset_size; i++){
 		if(dataset[i][price_ind] == 0){
-			for(uint j = 0; j < columns.size(); j++)
+			for(uint j = 0; j < 9; j++)
 				cheap_var[j] += (dataset[i][j] - cheap_mean[j]) * (dataset[i][j] - cheap_mean[j]);
 		}
 		else{
-			for(uint j = 0; j < columns.size(); j++)
+			for(uint j = 0; j < 9; j++)
 				expensive_var[j] += (dataset[i][j] - expensive_mean[j]) * (dataset[i][j] - expensive_mean[j]);
 		}
 	}
-	for(uint i = 0; i < columns.size(); i++){
+	for(uint i = 0; i < 9; i++){
 		cheap_var[i] /= cheap_size - 1;
 		expensive_var[i] /= expensive_size - 1;
 	}
@@ -119,7 +119,7 @@ void predict(int column_id){
 
 void print_accuracy(void) {
 	int correct_detected_classification = 0;
-	int price_ind = columns.size() - 1;
+	int price_ind = 9 - 1;
 
 	for(int i = 0; i < dataset_size; i++)
 		if(dataset[i][price_ind] == predictions[i])

@@ -17,7 +17,7 @@ vector<double> expensive_mean;
 vector<double> cheap_var;
 vector<double> expensive_var;
 vector<int> predictions;
-bool print_times = true;
+bool print_times = false;
 
 const string FILENAME = "dataset.csv";
 const string GrLivArea = "GrLivArea";
